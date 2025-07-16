@@ -1,0 +1,12 @@
+[package]
+name = "task7"
+version = "0.0.1"
+published-at = "0xa50041cf50c733e02c57ae5a9b3caa785b6f8f74b1598992f13f2941b1ab18ab"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+
+[addresses]
+task7 =  "0xa50041cf50c733e02c57ae5a9b3caa785b6f8f74b1598992f13f2941b1ab18ab"
+sui =  "0x2"

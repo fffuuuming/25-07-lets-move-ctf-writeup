@@ -143,13 +143,13 @@ while (!success) {
         });
 
         if (result4.effects.status.status === 'success') {
-            console.log('✅ tx3 succeeded!', result4.digest);
+            console.log('✅ tx4 succeeded!', result4.digest);
             success = true;
         } else {
-            console.error('❌ tx3 failed logically:', result4.effects.status);
+            console.error('❌ tx4 failed logically:', result4.effects.status);
         }
     } catch (error) {
-        console.error('❌ tx3 failed:', error.message || error);
+        console.error('❌ tx4 failed:', error.message || error);
         await new Promise(r => setTimeout(r, 300)); // wait 300ms before retrying
     }
 }

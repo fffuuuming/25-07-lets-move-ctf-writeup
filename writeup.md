@@ -1,5 +1,5 @@
 # move-ctf co-learning
-
+###### tags:`CTF`
 Try to write writeup for each task
 
 ## week1
@@ -602,3 +602,411 @@ Step by step solution:
     const result5 = await client.signAndExecuteTransaction({signer: keypair,transaction: tx5,});
     console.log('Tx4 result:', result5);
     ```
+
+## CTF: Maze
+
+Challenge Environment：
+- package id: `0x41184875118ddbbfcd6f2ddc803d8e4e49d2a3686282bcf0863c20d131521140`
+- deployment tx hash: `2j25hhMEr74SsZ1Wx9sqXPQjnKVHkRcCfMTbzf4iZH3X`
+
+Condition: 
+- Find the end of the maze
+
+Key Concept:
+
+Idea:
+
+PoC:
+```move
+#[test_only]
+module maze::maze_tests {
+    use sui::test_scenario::{Self as ts};
+    use maze::maze::{ChallengeStatus};
+    use maze::maze::{create_challenge, complete_challenge, get_challenge_status};
+    use std::debug::{print};
+
+    #[test]
+    fun test_maze() {
+        let sender = @0xcafe;
+        let mut s = ts::begin(sender);
+
+        // 1. Create a challenge
+        s.next_tx(sender);
+        create_challenge(s.ctx());
+
+        // // 2. Retrieve the challenge object created and transferred to sender
+        s.next_tx(sender);
+        let mut challenge = s.take_from_sender<ChallengeStatus>();
+        print<ChallengeStatus>(&challenge);
+
+        // 3. Build the correct path to reach the goal 'E'
+        // move: [sdssddssaasssddddddwww]
+        // ASCII values: w=119, s=115, a=97, d=100
+        let moves: vector<u8> = vector[
+            115,
+            100,
+            115,
+            115,
+            100,
+            100,
+            115,
+            115,
+            97,
+            97,
+            115,
+            115,
+            115,
+            100,
+            100,
+            100,
+            100,
+            100,
+            100,
+            119,
+            119,
+            119
+        ];
+
+        // 4. Try completing the challenge
+        complete_challenge(&mut challenge, moves, s.ctx());
+
+        // 5. Ensure challenge is marked complete
+        let complete = get_challenge_status(&challenge);
+        print(&complete);
+        s.return_to_sender(challenge);
+        s.end();
+    }
+}
+```
+
+Step by Step Solution:
+1. call `create_challenge()`:
+```
+sui client call \
+  --package  0x41184875118ddbbfcd6f2ddc803d8e4e49d2a3686282bcf0863c20d131521140 \
+  --module maze \
+  --function create_challenge \
+  --gas-budget 100000000
+```
+2. call `complete_challenge()`:
+```
+sui client call \
+  --package  0x41184875118ddbbfcd6f2ddc803d8e4e49d2a3686282bcf0863c20d131521140 \
+  --module maze \
+  --function complete_challenge \
+  --args \
+    0x41b2cd7dab12a7978d1c8900f14a1a6c54bf1b5ec5d7d3c3b715f4179cacff1f \
+    "[
+        115,
+        100,
+        115,
+        115,
+        100,
+        100,
+        115,
+        115,
+        97,
+        97,
+        115,
+        115,
+        115,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        119,
+        119,
+        119
+    ]" \
+  --gas-budget 100000000
+```
+3. call `claim_flag()`
+```
+sui client call \
+  --package 0x41184875118ddbbfcd6f2ddc803d8e4e49d2a3686282bcf0863c20d131521140 \
+  --module maze \
+  --function claim_flag \
+  --args \
+    0x41b2cd7dab12a7978d1c8900f14a1a6c54bf1b5ec5d7d3c3b715f4179cacff1f
+    "fffuuuming" \
+  --gas-budget 100000000
+
+```
+
+### Learning by Doing
+- [Sui Client CLI](https://docs.sui.io/references/cli/client)
+- 
+
+## Game
+
+Challenge Environment：
+- package id: `0x68b9e902796a4e3738efdd48b94dd1742dc29effa8d7432d6dc517e31109a9cc`
+- deployment tx hash: `2X2pvncpjwbLzqzoJds5i6YVXVr7ij2DF37gHprxGu6S`
+
+Condition:
+
+Key Concept:
+
+Idea:
+
+Solution:
+1. call `init_game()` to get the Challenge object 
+    ```
+    sui client call \
+      --package 0x68b9e902796a4e3738efdd48b94dd1742dc29effa8d7432d6dc517e31109a9cc \
+      --module ez_game \
+      --function init_game \
+      --args 0x8 \
+      --gas-budget 100000000
+    ```
+    After retrieving the challenge, we can find that [`challenge.target_amount = 11` on testnet](https://testnet.suivision.xyz/object/0xca5582fdae34916c3b0da72e093d4fd23c0ee72c1342e142fa291c97f9a576da)
+2. construct `user_input` and pass into `get_flag()`
+    ```
+    sui client call \
+      --package 0x68b9e902796a4e3738efdd48b94dd1742dc29effa8d7432d6dc517e31109a9cc \
+      --module ez_game \
+      --function get_flag \
+      --args \
+        "[1,1,1,1,1,1]" \
+        0xca5582fdae34916c3b0da72e093d4fd23c0ee72c1342e142fa291c97f9a576da \
+      --gas-budget 100000000
+    ```
+
+### Learning by Doing
+- [On-Chain Randomness](https://docs.sui.io/guides/developer/advanced/randomness-onchain)
+## Crypto
+
+Challenge Environment:
+- package id: `0xdcdfe90cfd3abbe52fd0c58d6525e9938cf8c926d35cea0e4f2889270c6315d5`
+- deplyment tx hash: `HVJoAiBJRNFCovNogs1DwK22Z79oW1YnVscx5GViv2T5`
+
+Condition:
+
+Key Concept:
+
+Idea:
+
+Solution:
+```
+sui client call \
+  --package 0xdcdfe90cfd3abbe52fd0c58d6525e9938cf8c926d35cea0e4f2889270c6315d5 \
+  --module crypto \
+  --function decrypt_flag \
+  --args "flag{5Ui_M0Ve_CONtrAC7}"
+  --gas-budget 100000000
+```
+
+## Adventure
+
+Challenge Environment:
+- package id: `0xa1f5bf15c4749f9d97f8d4727bb6013389d830613f0f135fe8958d8f43f3a1f7`
+- deployment tx hash: `GfiJp26xpP2kwTHAkVYbEiDLGCpGndxCqrBSNvgcivq`
+
+Condition:
+
+
+Key Concept:
+
+
+Idea:
+
+
+Solution:
+```
+sui client call \
+  --package 0x5941e09a9b232cc7c1185a9d5b9d46539663473d8a2d525b5f42d89d111fde7f \
+  --module adventure \
+  --function get_balances \
+  --args 0x6b1ff9e6dcc6486644422356cb04466227799f6799a6fbfc4a031ec4cdfe32aa
+  --gas-budget 100000000
+```
+
+
+```
+Hero {
+    id,
+    level: 1,
+    stamina: 200,
+    hp: 100,
+    experience: 0,
+    strength: 10,
+    defense: 5,
+    sword: option::none(),
+    armor: option::none(),
+}
+
+BoarKing {
+    id,
+    hp: 180 ~ 220,
+    strength: 20 ~ 25,
+    defense: 10 ~ 15
+}
+
+Hero_level_up {
+    id,
+    level: 2,
+    stamina: 200,
+    hp: 200,
+    experience: 0,
+    strength: 40,
+    defense: 20,
+    sword: option::none(),
+    armor: option::none(),
+}
+```
+```
+sui client call \
+  --package 0x5941e09a9b232cc7c1185a9d5b9d46539663473d8a2d525b5f42d89d111fde7f \
+  --module inventory \
+  --function get_flag \
+  --args 0x6b1ff9e6dcc6486644422356cb04466227799f6799a6fbfc4a031ec4cdfe32aa
+  --gas-budget 100000000
+```
+```
+sui client call \
+  --package 0x5941e09a9b232cc7c1185a9d5b9d46539663473d8a2d525b5f42d89d111fde7f \
+  --module inventory \
+  --function get_flag \
+  --args 0x6b1ff9e6dcc6486644422356cb04466227799f6799a6fbfc4a031ec4cdfe32aa
+  --gas-budget 100000000
+```
+
+### Learning by Doing
+- [Functions](https://move-book.com/reference/functions)
+- [Events](https://docs.sui.io/guides/developer/sui-101/using-events)
+- [What is the difference between `transfer::share_object` vs `transfer::public_share_object` in Sui Move?](https://stackoverflow.com/questions/79307286/what-is-the-difference-between-transfershare-object-vs-transferpublic-sha)
+## Swap
+
+Challenge Environment:
+
+Condition:
+- All tokens' balances are taken away:
+    ```
+    get_balance<TOKEN1>(pools) + get_balance<TOKEN2>(pools) + get_balance<TOKEN3>(pools) + get_balance<TOKEN4>(pools) == 0
+    ```
+- All pools' fees are taken away:
+    ```
+    get_total_fee<TOKEN1, TOKEN2>(pools) + get_total_fee<TOKEN3, TOKEN4>(pools) == 0
+    ```
+Key Concept:
+
+Idea:
+
+Solution:
+1. set fee manager & create pool cap
+    ```
+    sui client ptb \
+      --move-call "PACKAGE_ID::pool::set_fee_manager" \
+      "pools" \
+      "new_fee_manager" \
+      --move-call "PACKAGE_ID::pool::create_pool" \
+      "pools" \
+      "fee" \
+      "token1" \
+      "token2" \
+    ```
+    ```move
+    sui client ptb \
+      --move-call "0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::pool::set_fee_manager" \
+      "@0xe85984a7a8aac6060cf3084f33ef3ff090e2305253253cf320a8d2638f69a3ab" \
+      "@0x0660124982fd10e3c9ed11e55b445e5dee03b8db9408ea87f1c198d83b3f8bf0" \
+      --move-call "0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::pool::create_pool" \
+      "<0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::token1::TOKEN1,0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::token2::TOKEN2>" \
+      "@0xe85984a7a8aac6060cf3084f33ef3ff090e2305253253cf320a8d2638f69a3ab" \
+      "0" \
+      "@0xca558b6fdde1e8b0407bc8b4ee8beff76b1465e11b04999e2eefffeb62fdd57b" \
+      "@0x00e809b87a9968bdc754854db9ba67a4713587ff151c40ab9a0576b9f83acd41" \
+      --assign pool_1_2 \
+      --move-call "0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::pool::create_pool" \
+      "<0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::token3::TOKEN3,0x8d25f9c2391ce26e1fa9d0d30b639994f3e3ba0c9220a95fb4a8ab2b00bb319c::token4::TOKEN4>" \
+      "@0xe85984a7a8aac6060cf3084f33ef3ff090e2305253253cf320a8d2638f69a3ab" \
+      "0" \
+      "@0x189cd526c3767e6b9e3de45ecbc6e879c4e4bdce114dfc2baa0d3f6217e88738" \
+      "@0xd8910dba6391249ee9e34e086923cef46b2c1734435778d284f1ae0c6938dcf6" \
+      --assign pool_3_4 \
+      --transfer-objects "[pool_1_2, pool_3_4]" "@0x0660124982fd10e3c9ed11e55b445e5dee03b8db9408ea87f1c198d83b3f8bf0" \
+    ```
+2. create fake token, fakeId: 
+3. use fake token to swap
+    ```
+    sui client ptb \
+      --move-call "PACKAGE_ID::pool::swap_a_2_b" \
+      "<fake_token1_type,token2_type>" \
+      "pools" \
+      "fake_token1" \
+      --assign coin_2 \
+      --move-call "PACKAGE_ID::pool::swap_b_2_a" \
+      "<fake_token2_type,token1_type>" \
+      "pools" \
+      "fake_token2" \
+      --assign coin_1 \
+      --move-call "PACKAGE_ID::pool::swap_a_2_b" \
+      "<fake_token3_type,token4_type>" \
+      "pools" \
+      "fake_token3" \
+      --assign coin_4 \
+      --move-call "PACKAGE_ID::pool::swap_b_2_a" \
+      "<fake_token4_type,token3_type>" \
+      "pools" \
+      "fake_token4" \
+      --assign coin_3 \
+      --transfer-objects "[coin_1, coin_2, coin_3, coin_4]" "@my_wallet_address" \
+    ```
+    ```move
+    sui client ptb \
+      --move-call "0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::pool::swap_a_2_b" \
+      "<0x11aacca16a40b4f42af886c9a0719a4cd61d2a11125ae5b09e1c3335e2e8be5c::token1::TOKEN1,0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::token2::TOKEN2>" \
+      "@0xee2a982a333dac183ef2d5d341b1c58aa65234537ed72cd68cb45723b2bafe73" \
+      "@0xea5dca5c241d4363ffe458c3c46ef072cf21e09a6883ef87a257a88697584fb0" \
+      --assign coin_2 \
+      --move-call "0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::pool::swap_b_2_a" \
+      "<0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::token1::TOKEN1,0x11aacca16a40b4f42af886c9a0719a4cd61d2a11125ae5b09e1c3335e2e8be5c::token2::TOKEN2>" \
+      "@0xee2a982a333dac183ef2d5d341b1c58aa65234537ed72cd68cb45723b2bafe73" \
+      "@0x73f99a98c5cf205500959b2b9a851bb1f33d89f3793ba9ee413278d87d116afd" \
+      --assign coin_1 \
+      --move-call "0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::pool::swap_a_2_b" \
+      "<0x11aacca16a40b4f42af886c9a0719a4cd61d2a11125ae5b09e1c3335e2e8be5c::token3::TOKEN3,0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::token4::TOKEN4>" \
+      "@0xee2a982a333dac183ef2d5d341b1c58aa65234537ed72cd68cb45723b2bafe73" \
+      "@0x24717cd29f9ccaa8376d7d373a5f3553504c9d6bed152fba1f576dcddb45ff52" \
+      --assign coin_4 \
+      --move-call "0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::pool::swap_b_2_a" \
+      "<0x56ec8a1df7377359859b5ad99e8ca21a56df477e59489fe1d0fffb640bc0a3a5::token3::TOKEN3,0x11aacca16a40b4f42af886c9a0719a4cd61d2a11125ae5b09e1c3335e2e8be5c::token4::TOKEN4>" \
+      "@0xee2a982a333dac183ef2d5d341b1c58aa65234537ed72cd68cb45723b2bafe73" \
+      "@0xc5dbbe3dcfcb755f9190b4078f1808d3b48ae2502ec6c806eafc7c81d9cea336" \
+      --assign coin_3 \
+      --transfer-objects "[coin_1, coin_2, coin_3, coin_4]" "@0xee2a982a333dac183ef2d5d341b1c58aa65234537ed72cd68cb45723b2bafe73" \
+    ```
+### Learning by Doing:
+- [Module sui::balance](https://docs.sui.io/references/framework/sui/balance#sui_balance_value)
+- [Module std::type_name](https://docs.sui.io/references/framework/std/type_name)
+- PTB:
+    - [Programmable Transaction Blocks](https://docs.sui.io/concepts/transactions/prog-txn-blocks)
+    - [Sui Client PTB CLI](https://docs.sui.io/references/cli/ptb)
+- [构建和测试包](https://docs-zh.sui-book.com/guides/developer/first-app/build-test/)
+- [Get SUI Tokens](https://docs.sui.io/guides/developer/getting-started/get-coins)
+    ```
+    curl --location --request POST 'https://faucet.testnet.sui.io/v2/gas' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "FixedAmountRequest": {
+            "recipient": "<my wallet address>"
+        }
+    }'
+    ```
+## Calculation:
+
+Challenge Environment:
+
+Condition:
+
+Key Concept:
+
+Idea:
+
+Solution:
+1. call `set_fee_manager()`
+2. call `create_pool()`
+3. call `claim_fee()`
+4. 

@@ -2,7 +2,7 @@
 
 This campaign contain 4 weeks co-learning and 4 days ctf competition
 - [Letsmove CTF co-learning](https://platform.cyclens.tech/activity/1)
-- [Letsmove CTF competition](https://platform.cyclens.tech/activity/7): 30th place
+- [Letsmove CTF competition](https://platform.cyclens.tech/activity/7)
 
 ## Overview
 

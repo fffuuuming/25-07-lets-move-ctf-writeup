@@ -37,3 +37,4 @@ This writeup was completed during co-learning and competition
 - [week2](./writeup.md#week2)
 - [week3](./writeup.md#week3)
 - [week4](./writeup.md#week4)
+  > TODO: ctf competition
